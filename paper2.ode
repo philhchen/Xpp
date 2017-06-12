@@ -289,7 +289,6 @@ OGTT_f'=OGTT_f_on*t_min*OGTT_rate
 HGP_f'=HGP_f_on*t_min*HGP
 
 
-
 #### Glucose Amplifying factor
 
 par GF_bar=5, kGF=16, alpha_GF=260, shGF=-89, GF_b=2, GF_re=1
@@ -340,8 +339,6 @@ par ISR_adj=1, ISR_bas=0
 ISR=ts*9*(u3*NR)/ISR_adj + ISR_bas
 
 
-
-
 #aux plot_AISR=A_ISR
 aux plot_taub=tau_b
 aux prol_r=P/tau_b
@@ -375,11 +372,8 @@ aux plot_ci=ci
 aux plot_Cmd=Cmd
 
 
-
-
 aux thour=t/60
 aux tday=t/1440
-
 
 
 @ meth=cvode, toler=1.0e-10, atoler=1.0e-10, dt=10, total=5000000
@@ -389,4 +383,3 @@ aux tday=t/1440
 aux thour=t*24
 aux tmin=t*24*60
 done
-
