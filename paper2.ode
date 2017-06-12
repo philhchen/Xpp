@@ -1,0 +1,392 @@
+## As of May 13, 2016: A new drug simulations:
+
+## To simulate right drug effect:
+#                   SI dominant (IGT pathway)                     HGP Dominant (IFG pathway) 
+#
+#Early diabetes     wrong drug high dose: t=2,700,000                       wrong drug high dose: t=2,320,000
+#                     tar_hbas (tau_hbas=10):60,000 ---> 40,000     target_si(t_si=0.1):0.45 ---> 0.75
+#
+#Early Diabetes     right drug low dose: t=2,700,000                        right druglow dose: t=2,320,000           
+#                    si:0.15--->0.37                                tar_hbas:200,000--->85,500
+###############################################################################################################
+
+#Prediabetes       right drug low dose: t=2,260,800                      right drug low dose: 1,900,000
+#                    si=0.15 --->0.25                               hbas:200,000 ---> 120,000
+#
+#Prediabetes       wrong drug low dose                                   wrong drug low dose
+#                    hbas=60,000 --->53,000                               Si:0.45 --->0.52
+#                                                  
+
+
+
+## As of April 30, 2016:
+
+## To simulate right drug effect:
+#                   SI dominant (IGT pathway)                     HGP Dominant (IFG pathway) 
+#
+#sigma sustained      wrong drug: t=2,700,000                       wrong drug: t=2,320,000
+#                     tar_hbas (tau_hbas=10):60,000 ---> 40,000     target_si(t_si=0.1):0.45 ---> 0.75
+#
+#sigma sustained     right drug: t=2,700,000                        right drug: t=2,320,000           
+#                    si:0.15--->0.45                                tar_hbas:200,000--->80,000
+###########################################################################################################
+#sigma declined      right drug: t=3,200,000                        right drug: t=2,820,000 
+#                    si=0.15 --->0.45                               tar_hbas:200,000 ---> 80,000
+#
+#sigma declined      right drug + GLP1                              right drug + GLP1
+#                    si=0.15 --->0.45                               tar_hbas:200,000 --->80,000
+#                    sigma_b:5 --->15                               sigma_b:5--->20
+
+#### As of 19 April 2016, to make the-hour glucose elevated, OGTT flux is modified to be a little delayed.
+
+
+#### As of April 15, 2016:
+# Put back AISR: For CHI, high ISR causes beta-cell expansion too much even though 
+# low glucose level so that AISR is needed
+
+### As of April 1, 2016:
+#Simulating IVGTT with Insulin Injection
+#Main purpose: To remove the effect of insulin secretion on si, after depleting granule pools, injected
+#insulin that may be comparable to all subjects contributes to glucose uptake, leading to asses insulin
+#sensitivity.
+
+#Based on Anne’s data from “Higher AIR, JECM”, injected insulin 0.03U/kg at t=20 min during IVGTT.
+#Convert to 70 kg subject, 2.1U/70kg and then calculate concentration divided by 5L,
+#2.1U/5L=0.00042U/L=420*10(-6) U/L=420000uU/ml
+#Inject 4200000 uU/ml from 20 to 22 seconds by putting on Iclamp=1 and Iinjc1=420000 in XPP ode file.
+
+#As of Aug 6, 2015:
+##### Big note: I tried to model IGT-T2D, but it did not work.
+#     This version is friendly to NGT-IGT-CGI-T2D with pure peripheral insulin resistance.
+
+##### As of Aug. 6, 2015
+##### Modify GF because when GF_bar is reduced for IVGTT simulation,
+#     basal insulin also decreases, which is not reasonable. This results 
+#     from an unsaturated GF at the basal level of glucose curve.
+
+
+##### As of July, 2015:
+# Main idea is to put glucotoxicity on sigma without such a high postprandial glucose
+# possible modifications: Change Ca2+ dynamics  to Ca2+ elevated up to 350 mg/dl or 
+# Glucose amplification increased.
+# In this model, I increased glucose amplification factor.
+
+# To reduce postprandial glucose elevels during meal and OGTT
+# 1. increase glucose factor (Major change)
+#    :GF_bar:1--->4, kGF=100--->4, alpha_GF=200--->150
+# 2. reduce ISRI_bar (Major change).
+# 3. increase sigma_b=3---->10 because beta-cell mass (b) declines very fast 
+#    due to a small basal sigma and 
+# 4. reduce mealbar, mhill_bar, tar_hbas, and alpha_hM (6000---->4000, 140--->100, 40000--->35000, 0.15--->0.27 to adjust G to I)
+
+#### As of March 19, 2105:
+# For the simulation of Sulfonlurea, the current model is not robustic in the sense that
+# 1. By increasing gamma (sulfo effect), gamma is saturated before progression to severe diabetes.
+# 2. The current model shows that Ca2+ is saturated around 220 mg/dl so that 
+#    both 1) and 2) prevents reversal of diabetes by giving sulfonylurea,
+# However, one lesson can be confirmed from experiment, dbdb mice, gamma shifted mice, that subjects having flatten dose response curve, dbdb mice, may not have benefit by giving sulfonylurea.
+
+# So need to modify the model so that Ca2+ is saturated around 350 mg/dl.
+# For this, Artie wil confirm it with Richard Benneger at U of Colorado at Denver.
+
+
+
+### As of March 17, 2015:
+# 1. Change Eg0=1.44----> 17 because Defronzo's review paper said 
+# that in the postabsorptive state, insulin independent glucose uptake is made up 75% and only 25 % 
+# for insulin dependent uptake.
+# 2. This results in a better shape in developing diabetes for simulation, particulary more gradual rising 
+#    after collapsing. 
+
+
+### Paper 1 clean-up ode for rodents, August 30, 2014
+
+
+
+###### System parameters
+par Eg0=17, k=700, R0_init=864
+BV=5
+
+##### model blood volume (volume of distribution) from the birth to adult: bv=1L---->5L
+#par tau_BV=1000000,target_BV=5
+
+### time constant of beta-cell mass expansion from Burtler's data
+
+#par taub_bas=100, max_taub=1900, ktaub=2, alpha_taub=1000000;
+
+#tau_b=max_taub*t^ktaub/(alpha_taub^ktaub + t^ktaub) + taub_bas
+
+
+
+###### Define metabolic rate M and Insulin secretion rate ISR
+par Mmax=1, alpha_M=150, kM=2 
+M = Mmax*G^kM/(alpha_M^kM + G^kM)
+
+par alpha_ISR=1.2, kISR=2
+#ISR = sigma*(M+gamma)^kISR/(alpha_ISR^kISR + (M+gamma)^kISR)
+
+
+###### Build b dynamics  and Define Proliferation rate P(ISR) and Apoptosis A(M)
+par Pmax=4.55, kP=4, alpha_P=41.77
+P_ISR=Pmax*ISR^kP/(alpha_P^kP + ISR^kP)
+
+par Amax=3.11, alpha_A=0.44, kA=6, A_b=0.8
+A_M=Amax*M^kA/(alpha_A^kA + M^kA) + A_b
+
+
+#### adding calcium toxicity to the model, Aca is a function of Ca2+.
+#par Acabar=15, Aca_k=20, alpha_Aca=0.7, Acab=0, re_ca=1, tau_Aca=7
+#Aca_inf=Acabar*(ci*re_ca)^Aca_k/(alpha_Aca^Aca_k+(ci*re_ca)^Aca_k) + Acab
+
+### adding ISR toxicity on Apoptosis
+#par AISRmax=5, alpha_AISR=300, kAISR=8
+
+#A_ISR=AISRmax*ISR^kAISR/(alpha_AISR^kAISR + ISR^kAISR)
+
+A=A_M
+#A= A_M + Aca + A_ISR
+
+
+P= P_ISR
+#A= A_M
+
+# adult tau_b
+par tau_b=4000
+
+###### Build gamma dynamics
+
+par G_bar=0.4, Gs=100, Gn=5, Gshft=0.2
+G_inf=G_bar/(1+ exp(-(G-Gs)/Gn)) - Gshft
+gamma_inf=G_inf
+
+
+par tau_g=2.14
+
+###### Build sigma dynamics
+# Define a sifted M (M_Gsh) with G and a shifted ISR with the shifted M (ISR_Gsh)
+par sigma_Gsh=35
+M_Gsh = Mmax*(G-sigma_Gsh)^kM/(alpha_M^kM + (G-sigma_Gsh)^kM)
+ISR_Gsh = sigma*(M_Gsh+gamma)^kISR/(alpha_ISR^kISR + (M_Gsh+gamma)^kISR)
+
+# Define a positive feedback from ISR (sigma_ISRI)
+par  ISRI_bar=400,ISRI_s=0.1,ISRI_n=0.1, ISRI_k=1, sigma_b=5
+sigma_ISRI=ISRI_bar/(1+ ISRI_k*exp(-(ISR_Gsh-ISRI_s)/ISRI_n))
+
+# Define a negative feedback from M (sigma_MI)
+par MI_bar=1, MI_k=0.2, MI_s=0.2, MI_n=0.02
+sigma_MI= 1 - MI_bar/(1 + MI_k*exp(-(M_Gsh-MI_s)/MI_n))
+
+sigma_inf=sigma_MI*sigma_ISRI + sigma_b 
+
+
+par tau_sigma=249.9
+
+##### Enforced Insulin resistance parameters (Si)
+par t_Si=28000, target_Si=0.8, t_Si2=0.002, target_Si2=0.8
+
+
+# Controling Si and R0 for simulating Intensive Life Style Intervention (ILI) and bariatric surgery 
+
+par Si_tar=0.4,  R0_tar=864, sigma_tar=90
+par tonsi=1400000000, tonsigma=1400000000,tonR0=1400000000
+
+global 1 t-tonsigma {sigma=sigma_tar}
+R0=R0_init*(heav(t)-heav(t-tonR0)) + R0_tar*heav(t-tonR0)
+
+#### Turn on and off meal, OGTT, and IVGTT
+par meal=1, OGTT=0, IVGTT=0, Iclamp=0
+
+###### meal Flux
+par thyp=30, tpulse=0, period=360
+par nspike=3
+
+active=nspike*period
+par rest=360
+bperiod=active + rest 
+
+td = t-tpulse
+burstenv = (heav(mod(td,bperiod)) - heav(mod(t,bperiod) - active) )
+test_mod=mod(td,period)
+
+##### Insulin Clamp
+par GIRc1=8000, Iinjc1=150000, leanmass=55, Mb_vol=50
+
+EMBS=leanmass + 17.7
+
+
+par mealbar=4000, mhill_bar=100, mhill_k=4, mh_alpha=40, poly_p=0.3, exp_n=-0.015
+
+mhill_fcn=mhill_bar*mod(td,period)^mhill_k/(mh_alpha^mhill_k +mod(td,period)^mhill_k)
+meal_rate= meal*(mealbar*(mhill_fcn)^poly_p*exp(exp_n*(mod(td,period)))*burstenv)
+
+##### OGTT Flux
+
+par OGTTbar=4000, hill_bar=200, hill_k=2, hill_alpha=80, poly_p0=0.3, exp_n0=-0.013
+
+hill_fcn=hill_bar*t^hill_k/(hill_alpha^hill_k +t^hill_k)
+OGTT_rate=OGTT*OGTTbar*hill_fcn^poly_p0*exp(exp_n0*t)
+
+####IVGTT
+par IVGTTbar=18000000, IVGTT_sh=0, IVGTT_a=1, IVGTT_b=-10, IVGTT_sp=0
+
+IVGTT_rate= IVGTT*IVGTTbar*(t-IVGTT_sh)^IVGTT_a*exp(IVGTT_b*(t-IVGTT_sp))
+
+##### HGP 
+
+par hMbar=1.05895, alpha_hM=0.27, sh_hM=-0.242938
+hepa_MaxI= (hMbar/(alpha_hM +Si)) + sh_hM
+
+
+par KLbar=12766.9, alpha_KL=-21.7566, sh_KL=615.85
+KL= (KLbar/(alpha_KL+Si))  + sh_KL
+
+par khepaI=1, alpha_I=10, shhepaI=0, hepaI_re=0.6
+
+par HGP_b=150
+
+
+HGP = hbas*hepa_MaxI/(KL^khepaI + (I/hepaI_re - shhepaI)^khepaI) + HGP_b
+par tar_hbas=35000, tau_hbas=100
+
+# IC
+G(0)=83.68877970743614  
+I(0)=5.517813276731558  
+b(0)=1493.8555
+gamma(0)=-0.06647482467838016  
+sigma(0)=242.4527276981687  
+Si(0)=0.8 
+hbas(0)=35000  
+#BV(0)=1
+#Aca(0)=0
+meal_f(0)=8.84314188815126e-20  
+OGTT_f(0)=0  
+HGP_f(0)=0  
+N1(0)=33.4844591946052  
+N2(0)=1.408359645259025  
+N3(0)=0.01962893216377219  
+N4(0)=1.19671755839526e-05  
+N5(0)=55.84728985796983 
+N6(0)=388.3814754872049  
+NF(0)=0.00797812095165391  
+NR(0)=1.19680595967393  
+SE(0)=0
+ 
+G' = t_min*( Iclamp*GIRc1 + HGP + OGTT_rate + IVGTT_rate + meal_rate - (Eg0 + Si*I)*G ) 
+I' = t_min*(b*ISR/BV - k*I + Iclamp*Iinjc1)
+b' = t_min*(P-A)*b/tau_b 
+gamma'=t_min*(gamma_inf - gamma)/tau_g
+sigma'=t_min*(sigma_inf - sigma)/tau_sigma 
+Si'=t_min*(heav(t)-heav(t-tonsi))*(-t_si*(Si - target_Si)) + heav(t-tonsi)*(-t_si2*(Si - target_Si2))
+hbas'=t_min*(-hbas + tar_hbas)/tau_hbas
+#BV'=(target_BV - BV)/tau_BV
+#Aca'=t_min*(Aca_inf-Aca)/tau_Aca
+### calculate meal flux per day, OGTT flux per day, and HGP per day
+### to compare R=864 in Topp's model and Norwich's model.
+### 
+par meal_f_on=0, OGTT_f_on=0, HGP_f_on=0
+meal_f'=meal_f_on*t_min*meal_rate
+OGTT_f'=OGTT_f_on*t_min*OGTT_rate
+HGP_f'=HGP_f_on*t_min*HGP
+
+
+
+#### Glucose Amplifying factor
+
+par GF_bar=5, kGF=16, alpha_GF=260, shGF=-89, GF_b=2, GF_re=1
+
+GF=(GF_bar*(G/GF_re-shGF)^kGF/(alpha_GF^kGF + (G/GF_re-shGF)^kGF)) + GF_b
+
+#### Define a new Ca2+ as a function of M for sulfonylurea simulation As of March 19, 2105.
+# Note that by varying shca, IC of gamma can be around 0
+#par ca_bar=1.1, kca=8, alpha_ca=145, shca=-28, ca_b=0.07, ca_re=0.003, tca=0
+#par amp_gamma=1200
+#ci=ca_bar*(M/ca_re-shca +amp_gamma*gamma)^kca/(alpha_ca^kca + (M/ca_re-shca +amp_gamma*gamma)^kca) + ca_b
+
+par ca_bar=2, kca=4, alpha_ca=0.62, ca_b=0.07
+ci=ca_bar*(M + gamma)^kca/(alpha_ca^kca + (M + gamma)^kca) + ca_b
+
+
+### Define Microdoman Ca2+
+par cmd_factor=150, cmd_b=0.0635, cik=4, cialpha=1
+Cmd=cmd_factor*ci^cik/(cialpha^cik+ci^cik) + cmd_b
+
+#### Define exocytosis
+par k1=20, km1=100, r1=0.6, rm1=1, r20=0.006, rm2=0.001
+par r30=1.205, rm3=0.0001, u1=2000, u2=3, u3=0.02
+par Kp2=2.3
+
+
+r2 = r20*Ci/(Ci + Kp2)
+
+
+par re_sigma=320, ts=60, t_min=0.00069444
+sigma2=sigma/re_sigma
+
+r3 = sigma2*GF*r30*Ci/(Ci + Kp2)
+
+N1' = ts*(-(3*k1*Cmd + rm1)*N1 + km1*N2 + r1*N5)
+N2' = ts*(3*k1*Cmd*N1 -(2*k1*Cmd + km1)*N2 + 2*km1*N3)
+N3' = ts*(2*k1*Cmd*N2 -(2*km1 + k1*Cmd)*N3 + 3*km1*N4)
+N4' = ts*(k1*Cmd*N3 - (3*km1 + u1)*N4)
+N5' = ts*(rm1*N1 - (r1 + rm2)*N5 + r2*N6)
+N6' = ts*(r3 + rm2*N5 - (rm3 + r2)*N6)
+NF' = ts*(u1*N4 - u2*NF)
+NR' = ts*(u2*NF - u3*NR)
+SE' = ts*(u3*NR)
+
+#### Define ISR
+par ISR_adj=1, ISR_bas=0
+
+ISR=ts*9*(u3*NR)/ISR_adj + ISR_bas
+
+
+
+
+#aux plot_AISR=A_ISR
+aux plot_taub=tau_b
+aux prol_r=P/tau_b
+aux apop_r=A/tau_b
+aux plot_M=M
+aux plot_P=P
+aux plot_A=A
+aux plot_ISR=ISR
+aux plot_Si=Si
+aux plot_sig=sigma
+aux plot_R0=R0
+
+aux mealrate=t_min*meal_rate
+aux ogttrate=t_min*ogtt_rate
+aux hepa_supp=t_min*HGP
+aux total_gluf=t_min*meal_rate + t_min*HGP
+
+Mlow1=t_min*GIRc1*Mb_vol/(EMBS*G*I)
+TotalM=t_min*GIRc1*Mb_vol/EMBS
+
+aux GIRc=t_min*GIRc1
+aux Iinjc=Iinjc1*t_min
+
+aux GIR=t_min*GIRc1*Mb_vol
+aux Mlow=Mlow1
+
+aux testmod=test_mod
+aux benv=burstenv
+
+aux plot_ci=ci
+aux plot_Cmd=Cmd
+
+
+
+
+aux thour=t/60
+aux tday=t/1440
+
+
+
+@ meth=cvode, toler=1.0e-10, atoler=1.0e-10, dt=10, total=5000000
+@ maxstor=2000000,bounds=100000000000, xp=t, yp=G
+@ xlo=0, xhi=5000000, ylo=50, yhi=300
+@ bell=0
+aux thour=t*24
+aux tmin=t*24*60
+done
+
